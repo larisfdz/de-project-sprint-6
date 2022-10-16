@@ -2,11 +2,12 @@ import logging
 
 import boto3
 import vertica_python
+from airflow.models import Variable
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
-AWS_ACCESS_KEY_ID = "YCAJEWXOyY8Bmyk2eJL-hlt2K"
-AWS_SECRET_ACCESS_KEY = "YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA"
+AWS_ACCESS_KEY_ID = Variable.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = Variable.get('AWS_SECRET_ACCESS_KEY')
 
 conn_info = {'host': '51.250.75.20',
              'port': '5433',
@@ -44,10 +45,19 @@ def vertica_conn(templates_dict):
     with vertica_python.connect(**conn_info) as conn:
         with conn.cursor() as cur:
             cur.execute(stmt)
+            logging.info(f'rows_inserted: {cur.fetchone()}')
 
         conn.commit()
     conn.close()
 
+def check_results(templates_dict):
+    stmt = templates_dict['stmt']
+    with vertica_python.connect(**conn_info) as conn:
+        with conn.cursor() as cur:
+            cur.execute(stmt)
+            logging.info(f'rows_inserted: {cur.fetchall()}')
+        conn.commit()
+    conn.close()
 
 def load_data_to_stg(table_name):
     schema_name = conn_info['user']
@@ -57,6 +67,8 @@ def load_data_to_stg(table_name):
                 f"COPY {schema_name}__STAGING.{table_name} FROM local '/data/{table_name}.csv' DELIMITER ','")
             cur.execute(
                 f"COPY {schema_name}__STAGING.{table_name} FROM local '/data/{table_name}.csv' DELIMITER ','")
+            rows_inserted = cur.execute(f"select count(*) from {schema_name}__STAGING.{table_name}")
+            logging.info(f"rows_inserted: {rows_inserted.fetchone()}")
 
         conn.commit()
     conn.close()

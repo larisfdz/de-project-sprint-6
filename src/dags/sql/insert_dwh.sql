@@ -7,7 +7,7 @@ insert into
         load_src
     )
 select
-    hash(hu.hk_user_id, hg.hk_group_id),
+    distinct hash(hu.hk_user_id, hg.hk_group_id),
     hu.hk_user_id,
     hg.hk_group_id,
     now() as load_dt,
@@ -35,7 +35,7 @@ INSERT INTO
 select
     luga.hk_l_user_group_activity,
     gl.event,
-    gl."datetime" as event_dt,
+    gl.event_dt as event_dt,
     now() as load_dt,
     's3' as load_src
 from

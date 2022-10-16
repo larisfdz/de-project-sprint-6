@@ -5,7 +5,8 @@ Dag последовательно выполняет все этапы ELT дл
 - создает таблицу  в слое staging
 - сохраняет данные as is в слое staging,
 - создает таблицы в слое dwh,
-- наполняет таблицы слоя dwh
+- наполняет таблицы слоя dwh,
+- выводит дату-время последнего обновления и количество добавленных строк 
 '''
 
 import os
@@ -17,7 +18,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 
-from utils.func import get_files, load_data_to_stg, vertica_conn
+from utils.func import get_files, load_data_to_stg, vertica_conn, check_results
 
 DAG_ID = os.path.basename(__file__).split('.')[0]
 
@@ -91,7 +92,14 @@ insert_dwh_tables = SQLTemplatedPythonOperator(
     provide_context=True,
 )
 
+check_dwh = SQLTemplatedPythonOperator(
+    task_id='check_dwh',
+    templates_dict={'stmt': 'check_dwh.sql'},
+    python_callable=check_results,
+    provide_context=True,
+)
+
 end = DummyOperator(task_id='end', dag=dag)
 
-begin >> get_files >> print_10_lines_of_each >> create_stg_tables >> load_group_log_to_stg >> create_dwh_tables >> insert_dwh_tables >> end
+begin >> get_files >> print_10_lines_of_each >> create_stg_tables >> load_group_log_to_stg >> create_dwh_tables >> insert_dwh_tables >> check_dwh >> end
 
