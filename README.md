@@ -1,40 +1,8 @@
 # Проект 6-го спринта
 
-### Описание
-Репозиторий предназначен для сдачи проекта 6-го српинта
+Проект включает dag sprint7_vertica_project.py, файл с функциями utils/func.py и папку с запросами sql.  
 
-### Как работать с репозиторием
-1. В вашем GitHub-аккаунте автоматически создастся репозиторий `de-project-sprint-6` после того, как вы привяжете свой GitHub-аккаунт на Платформе.
-2. Скопируйте репозиторий на свой локальный компьютер, в качестве пароля укажите ваш `Access Token` (получить нужно на странице [Personal Access Tokens](https://github.com/settings/tokens)):
-	* `git clone https://github.com/{{ username }}/de-project-sprint-6.git`
-3. Перейдите в директорию с проектом: 
-	* `cd de-project-sprint-6`
-4. Выполните проект и сохраните получившийся код в локальном репозитории:
-	* `git add .`
-	* `git commit -m 'my best commit'`
-5. Обновите репозиторий в вашем GutHub-аккаунте:
-	* `git push origin main`
+Помимо таблицы-сателлита s_auth_history я посчитала нужным создать отдельную таблицу-сателлит s_group_user_from с информацией о том, кто пригласил пользователя. Потому что в s_auth_history хранятся данные, которые обновляются, но свойство "был приглашен тем-то / вступил сам" остается неименным для каждого пользователя во все время существования группы.
 
-### Структура репозитория
-- `/src/dags`
 
-### Как запустить контейнер
-Запустите локально команду:
-```
-docker run \
--d \
--p 3000:3000 \
--p 3002:3002 \
--p 15432:5432 \
---mount src=airflow_sp5,target=/opt/airflow \
---mount src=lesson_sp5,target=/lessons \
---mount src=db_sp5,target=/var/lib/postgresql/data \
---name=de-sprint-5-server-local \
-sindb/de-pg-cr-af:latest
-```
-
-После того как запустится контейнер, вам будут доступны:
-- Airflow
-	- `localhost:3000/airflow`
-- БД
-	- `jovyan:jovyan@localhost:15432/de`
+Запрос business_request.sql не включен в dag. 
